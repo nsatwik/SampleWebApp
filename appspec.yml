@@ -2,8 +2,8 @@ version: 0.0
 os: linux
 
 files:
-  - source: target/myapp.war
-    destination: /opt/tomcat/webapps/myapp.war
+  - source: target/WebApp.war
+    destination: /opt/tomcat/webapps/WebApp.war
   - source: scripts/
     destination: /opt/myapp/scripts
 
