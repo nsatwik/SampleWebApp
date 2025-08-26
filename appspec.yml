@@ -2,40 +2,35 @@ version: 0.0
 os: linux
 
 files:
-  - source: target/WebApp.war
-    destination: /opt/tomcat/webapps/WebApp.war
-  - source: Scripts/
-    destination: /opt/myapp/Scripts
+  - source: /opt/tomcat/SampleMavenTomcatApp.war
+    destination: /opt/tomcat/webapps/
+  - source: /opt/tomcat/configure_http_port.xsl
+    destination: /opt/tomcat/conf/
 
 permissions:
-  - object: /opt/tomcat
+  - object: /opt/tomcat/
     pattern: "**"
-    owner: ec2-user
-    group: ec2-user
-    mode: 777
-  - object: Scripts/
-    pattern: "**"
-    owner: ec2-user
-    group: ec2-user
-    mode: 777
+    owner: root
+    group: root
+    mode: 755
 
 hooks:
-  BeforeInstall:
-    - location: Scripts/install_dependencies.sh
+  ApplicationStop:
+    - location: scripts/stop_application.sh
       timeout: 300
+      runas: root
+
+  BeforeInstall:
+    - location: scripts/install_dependencies.sh
+      timeout: 600
       runas: root
 
   AfterInstall:
-    - location: Scripts/after_install.sh
+    - location: scripts/configure_tomcat.sh
       timeout: 300
       runas: root
 
-  ApplicationStop:
-    - location: Scripts/server_stop.sh
-      timeout: 300
-      runas: ec2-user
-
   ApplicationStart:
-    - location: Scripts/server_start.sh
+    - location: scripts/start_application.sh
       timeout: 300
-      runas: ec2-user
+      runas: root
