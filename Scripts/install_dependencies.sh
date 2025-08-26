@@ -1,26 +1,42 @@
 #!/bin/bash
 set -e
 
-echo "Installing dependencies..."
-
-# Update packages
-sudo yum update -y
-
-# Install Java 17 if not installed
-if ! java -version 2>/dev/null | grep "17"; then
-    sudo yum install -y java-17-amazon-corretto
+echo ">>> Updating system packages..."
+if command -v dnf >/dev/null 2>&1; then
+    sudo dnf update -y
+else
+    sudo yum update -y
 fi
 
-# Install Tomcat 9 if not installed
-if [ ! -d "/opt/tomcat" ]; then
-    cd /opt
-    sudo curl -O https://downloads.apache.org/tomcat/tomcat-9/v9.0.92/bin/apache-tomcat-9.0.92.tar.gz
-    sudo tar xvf apache-tomcat-9.0.92.tar.gz
-    sudo mv apache-tomcat-9.0.92 tomcat
-    sudo rm -f apache-tomcat-9.0.92.tar.gz
+echo ">>> Installing Java 21 (Amazon Corretto)..."
+if command -v java >/dev/null 2>&1; then
+    echo ">>> Java already installed"
+else
+    if command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y java-21-amazon-corretto-headless
+    else
+        sudo yum install -y java-21-amazon-corretto-headless
+    fi
 fi
 
-sudo chmod -R 777 /opt/tomcat
-sudo chown -R ec2-user:ec2-user /opt/tomcat
+JAVA_HOME_PATH=$(dirname $(dirname $(readlink -f $(which java))))
+echo ">>> JAVA_HOME=$JAVA_HOME_PATH"
 
-echo "Dependencies installed successfully."
+echo ">>> Installing Tomcat 9.0.108..."
+TOMCAT_DIR="/opt/tomcat"
+if [ ! -d "$TOMCAT_DIR" ]; then
+    sudo mkdir -p $TOMCAT_DIR
+    cd /tmp
+    curl -fSL https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.108/bin/apache-tomcat-9.0.108.tar.gz -o apache-tomcat-9.0.108.tar.gz
+    sudo tar xzf apache-tomcat-9.0.108.tar.gz -C $TOMCAT_DIR --strip-components=1
+    rm -f apache-tomcat-9.0.108.tar.gz
+fi
+
+echo ">>> Creating tomcat user..."
+if ! id -u tomcat >/dev/null 2>&1; then
+    sudo useradd -m -U -d $TOMCAT_DIR -s /bin/false tomcat
+fi
+
+echo ">>> Setting permissions..."
+sudo chown -R tomcat:tomcat $TOMCAT_DIR
+sudo chmod +x $TOMCAT_DIR/bin/*.sh
