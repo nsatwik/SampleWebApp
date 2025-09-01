@@ -51,7 +51,7 @@
 <div class="jumbotron">
     <div class="container">
         <h1>Welcome to MyDevOps</h1>
-        <p>Today is Monday</p>
+        <p>Hello world</p>
         <p><a class="btn btn-primary btn-lg" role="button">Learn more &raquo;</a></p>
     </div>
 </div>
